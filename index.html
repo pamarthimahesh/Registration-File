@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Tech For Girls Registration</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f9f2ff;
+      display: flex;
+      justify-content: center;
+      padding: 40px;
+    }
+
+    .form-container {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+      max-width: 400px;
+      width: 100%;
+    }
+
+    input, button {
+      width: 100%;
+      margin-top: 15px;
+      padding: 10px;
+      border: 1px solid #aaa;
+      border-radius: 8px;
+      font-size: 16px;
+    }
+
+    button {
+      background-color: #6a0dad;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #8a2be2;
+    }
+
+    #finalMessage {
+      margin-top: 20px;
+      font-weight: bold;
+      color: green;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="form-container">
+    <h1>🎀 Tech For Girls Registration 🎀</h1>
+    <form id="registrationForm">
+      <input type="text" name="name" placeholder="Name" required />
+      <input type="tel" name="phone" placeholder="Phone Number" required />
+      <input type="email" name="email" placeholder="Email ID" required />
+      <input type="text" name="college" placeholder="College/Department" required />
+
+      <div class="share-section">
+        <button type="button" id="shareBtn">📲 Share on WhatsApp</button>
+        <p id="clickCounter">Click count: 0/5</p>
+      </div>
+
+      <input type="file" name="screenshot" id="screenshot" required />
+
+      <button type="submit" id="submitBtn">Submit Registration</button>
+    </form>
+    <p id="finalMessage" class="hidden">🎉 Your submission has been recorded. Thanks for being part of Tech for Girls!</p>
+  </div>
+
+  <script>
+    let clickCount = 0;
+    const maxClicks = 5;
+
+    const shareBtn = document.getElementById("shareBtn");
+    const counterDisplay = document.getElementById("clickCounter");
+    const form = document.getElementById("registrationForm");
+    const finalMsg = document.getElementById("finalMessage");
+
+    shareBtn.addEventListener("click", () => {
+      if (clickCount < maxClicks) {
+        const message = encodeURIComponent("Hey Buddy, Join Tech For Girls Community!");
+        window.open(`https://wa.me/?text=${message}`, "_blank");
+
+        clickCount++;
+        counterDisplay.textContent = `Click count: ${clickCount}/${maxClicks}`;
+
+        if (clickCount === maxClicks) {
+          alert("Sharing complete. Please continue.");
+        }
+      }
+    });
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      if (clickCount < maxClicks) {
+        alert("Please complete WhatsApp sharing first (5 times).");
+        return;
+      }
+
+      const formData = new FormData(form);
+      const file = formData.get("screenshot");
+
+      const reader = new FileReader();
+      reader.onload = function () {
+        const base64File = reader.result;
+
+        fetch('https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec', {
+          method: 'POST',
+          body: JSON.stringify({
+            name: formData.get("name"),
+            phone: formData.get("phone"),
+            email: formData.get("email"),
+            college: formData.get("college"),
+            screenshot: base64File
+          }),
+          headers: {
+            "Content-Type": "application/json"
+          }
+        }).then(res => res.json())
+          .then(() => {
+            form.reset();
+            form.querySelectorAll("input, button").forEach(el => el.disabled = true);
+            shareBtn.disabled = true;
+            finalMsg.classList.remove("hidden");
+            localStorage.setItem("submitted", "true");
+          }).catch(() => alert("Error submitting form."));
+      };
+
+      reader.readAsDataURL(file);
+    });
+
+    window.onload = () => {
+      if (localStorage.getItem("submitted") === "true") {
+        form.querySelectorAll("input, button").forEach(el => el.disabled = true);
+        shareBtn.disabled = true;
+        finalMsg.classList.remove("hidden");
+      }
+    };
+  </script>
+</body>
+</html>
